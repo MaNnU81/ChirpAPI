@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ChirpAPI.Models;
+using ChirpAPI.Services.Services.Interfaces;
+using ChirpAPI.Services;
 
 namespace ChirpAPI.Controllers
 {
@@ -13,95 +15,118 @@ namespace ChirpAPI.Controllers
     [ApiController]
     public class ChirpsController : ControllerBase
     {
-        private readonly CinguettioContext _context;
+        private readonly IChirpsService _chirpsService;
+        private readonly ILogger<ChirpsController> _logger;
 
-        public ChirpsController(CinguettioContext context)
+        public ChirpsController(IChirpsService  chirpsService)
         {
-            _context = context;
+            _chirpsService = chirpsService;
         }
 
         // GET: api/Chirps
+        //[HttpGet("all")]
+        //public async Task<ActionResult<IEnumerable<Chirp>>> GetChirps()
+        //{
+        //    return await _context.Chirps.ToListAsync();
+        //}
+
+        // GET: api/Chirps?text= testo da cercare
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Chirp>>> GetChirps()
+        public async Task<IActionResult> GetChirpsByFilter([FromQuery] ChirpFilter filter)
         {
-            return await _context.Chirps.ToListAsync();
-        }
+            _logger.LogInformation("ChirpsController.GetChirpsByFilter called with filter: {@Filter}", filter);
 
-        // GET: api/Chirps/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Chirp>> GetChirp(int id)
-        {
-            var chirp = await _context.Chirps.FindAsync(id);
+            List<ChirpViewModel> result = await _chirpsService.GetChirpsByFilter(filter);
 
-            if (chirp == null)
+
+
+            if (result == null || !result.Any())
             {
-                return NotFound();
+                _logger.LogInformation("No chirps found for the given filter: {@Filter}", filter);
+                return NoContent();
             }
-
-            return chirp;
-        }
-
-        // PUT: api/Chirps/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutChirp(int id, Chirp chirp)
-        {
-            if (id != chirp.Id)
+            else
             {
-                return BadRequest();
+                _logger.LogInformation("Chirps found: {@Chirps}", result);
+                return Ok(result);
             }
-
-            _context.Entry(chirp).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ChirpExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
         }
 
-        // POST: api/Chirps
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<Chirp>> PostChirp(Chirp chirp)
-        {
-            _context.Chirps.Add(chirp);
-            await _context.SaveChangesAsync();
+        //// GET: api/Chirps/5
+        //[HttpGet("{id}")]
+        //public async Task<ActionResult<Chirp>> GetChirp([FromRoute]int id)
+        //{
+        //    var chirp = await _context.Chirps.FindAsync(id);
 
-            return CreatedAtAction("GetChirp", new { id = chirp.Id }, chirp);
-        }
+        //    if (chirp == null)
+        //    {
+        //        return NotFound();
+        //    }
 
-        // DELETE: api/Chirps/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteChirp(int id)
-        {
-            var chirp = await _context.Chirps.FindAsync(id);
-            if (chirp == null)
-            {
-                return NotFound();
-            }
+        //    return chirp;
+        //}
 
-            _context.Chirps.Remove(chirp);
-            await _context.SaveChangesAsync();
+        //// PUT: api/Chirps/5
+        //// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        //[HttpPut("{id}")]
+        //public async Task<IActionResult> PutChirp([FromRoute]int id, [FromBody] Chirp chirp)
+        //{
+        //    if (id != chirp.Id)
+        //    {
+        //        return BadRequest("id diversi");
+        //    }
 
-            return NoContent();
-        }
+        //    _context.Entry(chirp).State = EntityState.Modified;
 
-        private bool ChirpExists(int id)
-        {
-            return _context.Chirps.Any(e => e.Id == id);
-        }
+        //    try
+        //    {
+        //        await _context.SaveChangesAsync();
+        //    }
+        //    catch (DbUpdateConcurrencyException)
+        //    {
+        //        if (!ChirpExists(id))
+        //        {
+        //            return NotFound();
+        //        }
+        //        else
+        //        {
+        //            throw;
+        //        }
+        //    }
+
+        //    return NoContent();
+        //}
+
+        //// POST: api/Chirps
+        //// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        //[HttpPost]
+        //public async Task<ActionResult<Chirp>> PostChirp([FromRoute] int id, [FromBody] Chirp chirp)
+        //{
+        //    _context.Chirps.Add(chirp);
+        //    await _context.SaveChangesAsync();
+
+        //    return CreatedAtAction("GetChirp", new { id = chirp.Id }, chirp);
+        //}
+
+        //// DELETE: api/Chirps/5
+        //[HttpDelete("{id}")]
+        //public async Task<IActionResult> DeleteChirp([FromRoute] int id)
+        //{
+        //    var chirp = await _context.Chirps.FindAsync(id);
+        //    if (chirp == null)
+        //    {
+        //        return NotFound();
+        //    }
+
+        //    _context.Chirps.Remove(chirp);
+        //    await _context.SaveChangesAsync();
+
+        //    return NoContent();
+        //}
+
+        //private bool ChirpExists( int id)
+        //{
+        //    return _context.Chirps.Any(e => e.Id == id);
+        //}
     }
 }

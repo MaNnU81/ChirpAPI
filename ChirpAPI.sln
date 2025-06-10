@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35931.197 d17.13
+VisualStudioVersion = 17.13.35931.197
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChirpAPI", "ChirpAPI\ChirpAPI.csproj", "{568B2623-3F29-48D5-988C-0C1763B3471E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChirpAPI.Services", "ChirpAPI.Services\ChirpAPI.Services.csproj", "{BA53E288-2DB1-4A89-B101-3054B6270506}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{568B2623-3F29-48D5-988C-0C1763B3471E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{568B2623-3F29-48D5-988C-0C1763B3471E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{568B2623-3F29-48D5-988C-0C1763B3471E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA53E288-2DB1-4A89-B101-3054B6270506}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA53E288-2DB1-4A89-B101-3054B6270506}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA53E288-2DB1-4A89-B101-3054B6270506}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA53E288-2DB1-4A89-B101-3054B6270506}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

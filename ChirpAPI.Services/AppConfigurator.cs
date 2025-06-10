@@ -1,4 +1,6 @@
-﻿namespace ChirpAPI
+﻿using Microsoft.Extensions.Configuration;
+
+namespace ChirpAPI
 {
     public class AppConfigurator
     {
