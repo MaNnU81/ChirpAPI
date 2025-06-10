@@ -25,6 +25,7 @@ namespace ChirpAPI
             builder.Services.AddScoped<IChirpsService, GiovanniChirpsService>();
 
             var app = builder.Build();
+            builder.Services.AddLogging();
 
             // Configure the HTTP request pipeline.
 
