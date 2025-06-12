@@ -1,120 +1,122 @@
-﻿//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using System.Threading.Tasks;
-//using Microsoft.AspNetCore.Http;
-//using Microsoft.AspNetCore.Mvc;
-//using Microsoft.EntityFrameworkCore;
-//using ChirpAPI.Models;
-//using ChirpAPI.Services.Services.Interfaces;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using ChirpAPI.Models;
+using ChirpAPI.Services.Services.Interfaces;
+using ChirpAPI.Services.Model.DTOs;
+using Microsoft.Extensions.Logging;
 
-//namespace ChirpAPI.Controllers
-//{
-//    [Route("api/[controller]")]
-//    [ApiController]
-//    public class CommentsController : ControllerBase
-//    {
-//        private readonly ICommentsService _commentsService;
-//        private readonly ILogger<CommentsController> _logger;
+namespace ChirpAPI.Controllers
+{
+    [Route("api/chirps/{chirpId}/[controller]")]  // Route più RESTful
+    [ApiController]
+    public class CommentsController : ControllerBase
+    {
+        private readonly ICommentsService _commentsService;
+        private readonly ILogger<CommentsController> _logger;
 
-//        public CommentsController(ICommentsService commentsService, ILogger<CommentsController> logger)
-//        {
+        public CommentsController(ICommentsService commentsService, ILogger<CommentsController> logger)
+        {
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _commentsService = commentsService ?? throw new ArgumentNullException(nameof(commentsService));
+        }
 
-//            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-//            _commentsService = commentsService ?? throw new ArgumentNullException(nameof(commentsService));
-//        }
+        // GET: api/chirps/5/comments
+        [HttpGet]
+        public async Task<IActionResult> GetComments([FromRoute] int chirpId)
+        {
+            _logger.LogInformation("Getting comments for chirp {ChirpId}", chirpId);
 
-//        // GET: api/Comments
-//        [HttpGet]
-//        public async Task<ActionResult<IEnumerable<Comment>>> GetComments()
-//        {
+            var comments = await _commentsService.GetCommentsByChirpId(chirpId);
 
-//            _logger.LogInformation("CommentsController.GetComments called");
+            if (comments == null || !comments.Any())
+            {
+                _logger.LogInformation("No comments found for chirp {ChirpId}", chirpId);
+                return NoContent();
+            }
 
-//            var comments = await _commentsService.GetAllComments();
+            return Ok(comments);
+        }
 
-//            if (comments == null || !comments.Any())
-//            {
-//                _logger.LogInformation("No comments found in database");
-//                return NoContent();
-//            }
-//        }
+        // GET: api/chirps/5/comments/2
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetComment([FromRoute] int chirpId, [FromRoute] int id)
+        {
+            _logger.LogInformation("Getting comment {CommentId} for chirp {ChirpId}", id, chirpId);
 
-//        // GET: api/Comments/5
-//        [HttpGet("{id}")]
-//        public async Task<ActionResult<Comment>> GetComment(int id)
-//        {
-//            var comment = await _context.Comments.FindAsync(id);
+            var comment = await _commentsService.GetCommentById(id);
 
-//            if (comment == null)
-//            {
-//                return NotFound();
-//            }
+            if (comment == null || comment.ChirpId != chirpId)
+            {
+                _logger.LogInformation("Comment {CommentId} not found for chirp {ChirpId}", id, chirpId);
+                return NotFound();
+            }
 
-//            return comment;
-//        }
+            return Ok(comment);
+        }
 
-//        // PUT: api/Comments/5
-//        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-//        [HttpPut("{id}")]
-//        public async Task<IActionResult> PutComment(int id, Comment comment)
-//        {
-//            if (id != comment.Id)
-//            {
-//                return BadRequest();
-//            }
+        // POST: api/chirps/5/comments
+        [HttpPost]
+        public async Task<IActionResult> PostComment([FromRoute] int chirpId,[FromBody] CommentCreateModel model)
+        {
+           
+           
 
-//            _context.Entry(comment).State = EntityState.Modified;
+            _logger.LogInformation("Creating comment for chirp {ChirpId}", chirpId);
 
-//            try
-//            {
-//                await _context.SaveChangesAsync();
-//            }
-//            catch (DbUpdateConcurrencyException)
-//            {
-//                if (!CommentExists(id))
-//                {
-//                    return NotFound();
-//                }
-//                else
-//                {
-//                    throw;
-//                }
-//            }
+          
 
-//            return NoContent();
-//        }
+            var createdComment = await _commentsService.CreateComment(chirpId, model);
 
-//        // POST: api/Comments
-//        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-//        [HttpPost]
-//        public async Task<ActionResult<Comment>> PostComment(Comment comment)
-//        {
-//            _context.Comments.Add(comment);
-//            await _context.SaveChangesAsync();
+            return createdComment == null
+                ? NotFound($"Chirp with id {chirpId} not found")
+                : CreatedAtAction(
+                    nameof(GetComment),
+                    new { chirpId, id = createdComment.Id },
+                    createdComment);
+        }
 
-//            return CreatedAtAction("GetComment", new { id = comment.Id }, comment);
-//        }
+        // PUT: api/chirps/5/comments/2
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutComment(
+            [FromRoute] int chirpId,
+            [FromRoute] int id,
+            [FromBody] CommentUpdateModel model)
+        {
+            _logger.LogInformation("Updating comment {CommentId} for chirp {ChirpId}", id, chirpId);
 
-//        // DELETE: api/Comments/5
-//        [HttpDelete("{id}")]
-//        public async Task<IActionResult> DeleteComment(int id)
-//        {
-//            var comment = await _context.Comments.FindAsync(id);
-//            if (comment == null)
-//            {
-//                return NotFound();
-//            }
+            var updatedComment = await _commentsService.UpdateComment(id, model);
 
-//            _context.Comments.Remove(comment);
-//            await _context.SaveChangesAsync();
+            if (updatedComment == null || updatedComment.ChirpId != chirpId)
+            {
+                _logger.LogInformation("Comment {CommentId} not found for chirp {ChirpId}", id, chirpId);
+                return NotFound();
+            }
 
-//            return NoContent();
-//        }
+            return Ok(updatedComment);
+        }
 
-//        private bool CommentExists(int id)
-//        {
-//            return _context.Comments.Any(e => e.Id == id);
-//        }
-//    }
-//}
+        // DELETE: api/chirps/5/comments/2
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteComment(
+            [FromRoute] int chirpId,
+            [FromRoute] int id)
+        {
+            _logger.LogInformation("Deleting comment {CommentId} for chirp {ChirpId}", id, chirpId);
+
+            var result = await _commentsService.DeleteComment(id);
+
+            if (!result)
+            {
+                _logger.LogInformation("Comment {CommentId} not found for chirp {ChirpId}", id, chirpId);
+                return NotFound();
+            }
+
+            return NoContent();
+        }
+    }
+}

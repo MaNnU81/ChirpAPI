@@ -56,6 +56,8 @@ public partial class CinguettioContext : DbContext
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.ChirpId).HasColumnName("chirp_id");
             entity.Property(e => e.CreationTime)
+                        .HasConversion(v => v.TimeOfDay,  // Converti DateTime in TimeSpan quando salvi
+                            v => DateTime.Today.Add(v))  // Converti TimeSpan in DateTime quando leggi
                 .HasDefaultValueSql("CURRENT_TIMESTAMP")
                 .HasColumnName("creation_time");
             entity.Property(e => e.ParentId).HasColumnName("parent_id");

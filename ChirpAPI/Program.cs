@@ -37,6 +37,7 @@ namespace ChirpAPI
             builder.Services.AddControllers();
 
             builder.Services.AddScoped<IChirpsService, GiovanniChirpsService>();
+            builder.Services.AddScoped<ICommentsService, GiovanniCommentsService>();
 
             var app = builder.Build();
 
