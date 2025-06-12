@@ -72,6 +72,7 @@ namespace ChirpAPI.Services.Services
                 ExtUrl = chirpCreateModel.ExtUrl,
                 Lat = chirpCreateModel.Lat,
                 Lng = chirpCreateModel.Lng,
+                CreationTime = DateTime.UtcNow
 
             };
 
