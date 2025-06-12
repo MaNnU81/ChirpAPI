@@ -45,7 +45,7 @@ namespace ChirpAPI.Services.Services
                 Id = x.Id,
                 Text = x.Text,
                 ExtUrl = x.ExtUrl,
-                CreationTime = x.CreationTime,
+                CreationTime = DateTime.UtcNow,
                 Lat = x.Lat,
                 Lng = x.Lng,
 
@@ -91,7 +91,7 @@ namespace ChirpAPI.Services.Services
                     Id = c.Id,
                     Text = c.Text,
                     ExtUrl = c.ExtUrl,
-                    CreationTime = c.CreationTime,
+                    CreationTime = DateTime.UtcNow,
                     Lat = c.Lat,
                     Lng = c.Lng
                 })
@@ -108,7 +108,7 @@ namespace ChirpAPI.Services.Services
                     Id = c.Id,
                     Text = c.Text,
                     ExtUrl = c.ExtUrl,
-                    CreationTime = c.CreationTime,
+                    CreationTime = DateTime.UtcNow,
                     Lat = c.Lat,
                     Lng = c.Lng
                 })
@@ -153,7 +153,7 @@ namespace ChirpAPI.Services.Services
         {
             Chirp? entity = await _context.Chirps
                                         .Include(x => x.Comments)
-                                        .Where(c => c.Id == id)
+                                        .Where(x => x.Id == id)
                                         .SingleOrDefaultAsync();
 
 
@@ -162,7 +162,7 @@ namespace ChirpAPI.Services.Services
                 return null;
             }
 
-            if (entity.Comments != null || entity.Comments.Count > 0)
+            if (entity.Comments != null && entity.Comments.Count > 0)
             {
                 return -1;
             }
