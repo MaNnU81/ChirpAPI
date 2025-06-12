@@ -1,10 +1,11 @@
-﻿using ChirpAPI.Models;
-using ChirpAPI.Services;
-using ChirpAPI.Services.Model;
+﻿using ChirpAPI.Services.Model.DTOs;
+using ChirpAPI.Services.Model.Filters;
+using ChirpAPI.Services.Model.ViewModel;
 using ChirpAPI.Services.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NuGet.DependencyResolver;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,9 +20,9 @@ namespace ChirpAPI.Controllers
         private readonly IChirpsService _chirpsService;
         private readonly ILogger<ChirpsController> _logger;
 
-        public ChirpsController(IChirpsService  chirpsService, ILogger<ChirpsController> logger)
+        public ChirpsController(IChirpsService chirpsService, ILogger<ChirpsController> logger)
         {
-            
+
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _chirpsService = chirpsService ?? throw new ArgumentNullException(nameof(chirpsService));
         }
@@ -118,14 +119,20 @@ namespace ChirpAPI.Controllers
             {
                 _logger.LogInformation("ChirpsController.PostChirp called with chirp: {@Chirp}", chirpCreateModel);
 
-                var createdChirp = await _chirpsService.CreateChirp(chirpCreateModel);
+                
 
-                // Opzione 1: Restituisci direttamente il risultato creato
-                return Created($"/api/chirps/{createdChirp.Id}", createdChirp);
+                var chirpId = await _chirpsService.CreateChirp(chirpCreateModel);
 
-                // Opzione 2: Implementa prima GetChirp (soluzione migliore)
-                // return CreatedAtAction(nameof(GetChirp), new { id = createdChirp.Id }, createdChirp);
+                if (chirpId == null)
+                {
+                    return BadRequest("Text obbligatorio");
+                }
+
+
+
+                return Created($"/api/chirps/{chirpId}", chirpId);
             }
+
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating chirp");
@@ -139,22 +146,20 @@ namespace ChirpAPI.Controllers
         {
             _logger.LogInformation("ChirpsController.DeleteChirp called for id: {Id}", id);
 
-            if (id <= 0)
-            {
-                _logger.LogWarning("Invalid ID provided: {Id}", id);
-                return BadRequest("ID must be positive");
-            }
 
-            bool deleted = await _chirpsService.DeleteChirp(id);
+            int? result = await _chirpsService.DeleteChirp(id);
 
-            if (!deleted)
+            if (result == null)
             {
                 _logger.LogInformation("Chirp with id {Id} not found for deletion", id);
-                return NotFound();
+                return BadRequest("chirp non esistente");
             }
 
-            _logger.LogInformation("Chirp with id {Id} successfully deleted", id);
-            return NoContent();
+            if (result == -1 )
+            {
+                return BadRequest("eliminare prima i commenti");
+            }
+            return Ok(result);
         }
     }
 }

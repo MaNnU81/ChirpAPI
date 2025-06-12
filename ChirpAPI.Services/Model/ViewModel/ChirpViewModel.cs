@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ChirpAPI.Services;
+namespace ChirpAPI.Services.Model.ViewModel;
 
 public class ChirpViewModel
 {
@@ -11,7 +11,7 @@ public class ChirpViewModel
 
     public string? ExtUrl { get; set; }
 
-    public TimeOnly CreationTime { get; set; }
+    public DateTime CreationTime { get; set; }
 
     public double? Lat { get; set; }
 

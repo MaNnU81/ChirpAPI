@@ -1,11 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace ChirpAPI.Services.Model
+namespace ChirpAPI.Services.Model.DTOs
 {
     public class ChirpUpdateModel
     {
      
-        public string Text { get; set; } = null!;
+        public string? Text { get; set; } = null!;
 
        
         public string? ExtUrl { get; set; }

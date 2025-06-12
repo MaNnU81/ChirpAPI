@@ -13,7 +13,7 @@ public partial class Comment
 
     public string Text { get; set; } = null!;
 
-    public TimeOnly CreationTime { get; set; }
+    public DateTime CreationTime { get; set; }
 
     public virtual Chirp Chirp { get; set; } = null!;
 

@@ -1,5 +1,7 @@
 ﻿using ChirpAPI.Models;
-using ChirpAPI.Services.Model;
+using ChirpAPI.Services.Model.DTOs;
+using ChirpAPI.Services.Model.Filters;
+using ChirpAPI.Services.Model.ViewModel;
 using ChirpAPI.Services.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -30,6 +32,14 @@ namespace ChirpAPI.Services.Services
                 query = query.Where(x => x.Text == filter.Text);
 
             }
+
+            if (!string.IsNullOrWhiteSpace(filter.ExtUrl))
+            {
+                query = query.Where(x => x.ExtUrl.Contains (filter.ExtUrl));
+
+            }
+
+
             var result = await query.Select(x => new ChirpViewModel
             {
                 Id = x.Id,
@@ -48,8 +58,14 @@ namespace ChirpAPI.Services.Services
 
 
 
-        public async Task<ChirpViewModel> CreateChirp(ChirpCreateModel chirpCreateModel)
+        public async Task<int?> CreateChirp(ChirpCreateModel chirpCreateModel)
         {
+
+            if (string.IsNullOrWhiteSpace(chirpCreateModel.Text))
+            {
+                return null;
+            }
+
             var chirp = new Chirp
             {
                 Text = chirpCreateModel.Text,
@@ -62,21 +78,13 @@ namespace ChirpAPI.Services.Services
             _context.Chirps.Add(chirp);
             await _context.SaveChangesAsync();
 
-            return new ChirpViewModel
-            {
-                Id = chirp.Id,
-                Text = chirp.Text,
-                ExtUrl = chirp.ExtUrl,
-                CreationTime = chirp.CreationTime,
-                Lat = chirp.Lat,
-                Lng = chirp.Lng
-            };
+            return chirp.Id;
         }
 
         public async Task<List<ChirpViewModel>> GetAllChirps()
         {
             return await _context.Chirps
-                //.OrderByDescending(c => c.CreationTime) // Ordina per data decrescente (modificabile)
+                //.OrderByDescending(c => c.CreationTime) // Ordina per data decrescente 
                 .Select(c => new ChirpViewModel
                 {
                     Id = c.Id,
@@ -107,8 +115,7 @@ namespace ChirpAPI.Services.Services
         }
 
 
-
-        public async Task<ChirpViewModel?> UpdateChirp(int id, ChirpUpdateModel chirpUpdateModel)
+        public async Task<int?> UpdateChirp(int id, ChirpUpdateModel chirpUpdateModel)
         {
             var existingChirp = await _context.Chirps.FindAsync(id);
 
@@ -116,6 +123,8 @@ namespace ChirpAPI.Services.Services
             {
                 return null;
             }
+
+
 
             // Aggiorna solo i campi modificabili
             existingChirp.Text = chirpUpdateModel.Text;
@@ -127,15 +136,7 @@ namespace ChirpAPI.Services.Services
             {
                 await _context.SaveChangesAsync();
 
-                return new ChirpViewModel
-                {
-                    Id = existingChirp.Id,
-                    Text = existingChirp.Text,
-                    ExtUrl = existingChirp.ExtUrl,
-                    CreationTime = existingChirp.CreationTime,
-                    Lat = existingChirp.Lat,
-                    Lng = existingChirp.Lng
-                };
+                return id;
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -147,18 +148,27 @@ namespace ChirpAPI.Services.Services
             }
         }
 
-        public async Task<bool> DeleteChirp(int id)
+        public async Task<int?> DeleteChirp(int id)
         {
-            var chirp = await _context.Chirps.FindAsync(id);
-            if (chirp == null)
+            Chirp? entity = await _context.Chirps
+                                        .Include(x => x.Comments)
+                                        .Where(c => c.Id == id)
+                                        .SingleOrDefaultAsync();
+
+
+            if (entity == null)
             {
-                return false;
+                return null;
             }
 
-            _context.Chirps.Remove(chirp);
-            await _context.SaveChangesAsync();
-            return true;
-        }
+            if (entity.Comments != null || entity.Comments.Count > 0)
+            {
+                return -1;
+            }
 
+            _context.Chirps.Remove(entity);
+            await _context.SaveChangesAsync();
+            return id;
+        }
     }
 }

@@ -11,7 +11,7 @@ public partial class Chirp
 
     public string? ExtUrl { get; set; }
 
-    public TimeOnly CreationTime { get; set; }
+    public DateTime CreationTime { get; set; }
 
     public double? Lat { get; set; }
 
